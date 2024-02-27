@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head> </head>
+  <body>
+    <!-- <form onsubmit="upload"></form> -->
+    <input
+      oninput="window.upload(this)"
+      type="file"
+      id="file"
+      name="image"
+      accept="image/*"
+    />
+
+    <script>
+      const SCALING = 3;
+
+      async function upload(e) {
+        const bitmap = await createImageBitmap(e.files[0]);
+        const canvas = document.createElement("canvas");
+        canvas.width = 100;
+        canvas.height = bitmap.height / (bitmap.width / 100);
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+        const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        let values = [];
+
+        data.forEach((value, index) => {
+          const x = Math.floor((index % (4 * canvas.width)) / 4);
+          const y = Math.floor(index / (4 * canvas.width));
+
+          values.push(value);
+
+          if (index % 4 == 3) {
+            const div = document.createElement("div");
+            Object.assign(div.style, {
+              position: "absolute",
+              top: y * SCALING + "px",
+              left: x * SCALING + "px",
+              height: SCALING + "px",
+              width: SCALING + "px",
+              backgroundColor: `rgb(${values.join(",")})`,
+            });
+            document.body.appendChild(div);
+            values = [];
+          }
+        });
+
+        document.getElementById("file").remove();
+      }
+    </script>
+  </body>
+</html>
